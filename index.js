@@ -41,6 +41,29 @@ app.get("/polls", async (req, res) => {
 })
 
 
+const obtainPollById = async (pollId) => {
+    try {
+        return await Poll.findById(pollId);
+    } catch (error) {
+        throw error;
+    }
+};
+
+app.get("/polls/:pollId", async (req, res) => {
+    try {
+        const poll = await obtainPollById(req.params.pollId);
+
+        if (!poll) {
+            return res.status(404).json({ message: "Poll not found." }); 
+        }
+
+        res.status(200).json(poll);
+    } catch (error) {
+        res.status(500).json({ error: `Server error: ${error.message}` }); 
+    }
+});
+
+
 const seedPolls = async (pollData) => {
     try {
         const polls = new Poll(pollData)
