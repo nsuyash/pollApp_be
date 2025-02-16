@@ -70,18 +70,27 @@ app.post("/polls/:id/vote", async (req, res) => {
       const poll = await Poll.findById(req.params.id);
       if (!poll) return res.status(404).json({ error: "Poll not found" });
   
-      const { answerIndex } = req.body;
-      if (answerIndex >= 0 && answerIndex < poll.options.length) {
-        poll.questionAndOptions.answer[answerIndex].votes += 1;
-        await poll.save();
-        res.json(poll);
-      } else {
-        res.status(400).json({ error: "Invalid option" });
+      const { questionIndex, optionIndex } = req.body;
+  
+      if (questionIndex < 0 || questionIndex >= poll.questionAndOptions.length) {
+        return res.status(400).json({ error: "Invalid question index" });
       }
+  
+      const question = poll.questionAndOptions[questionIndex];
+      if (optionIndex < 0 || optionIndex >= question.answer.length) {
+        return res.status(400).json({ error: "Invalid option index" });
+      }
+  
+      question.answer[optionIndex].votes += 1;
+      
+      await poll.save();
+  
+      res.json({ message: "Vote recorded successfully", poll });
     } catch (error) {
       res.status(500).json({ error: "Failed to vote" });
     }
   });
+  
   
   app.delete("/polls/:id", async (req, res) => {
     await Poll.findByIdAndDelete(req.params.id);
